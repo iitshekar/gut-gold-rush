@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gut Gold Rush – Digestion Game</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#2A1533; --bg:#FFE6EE; --panel:#FFFFFF; --gold:#F2B705; --goldDeep:#B98600;
+  --gut:#C7316B; --villi:#14907F; --bile:#7BAE1E; --sky:#3B6FD8; --muted:#6E5878; --line:#F3C3D3;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ink:#FBEFF4;--bg:#1E0F26;--panel:#2D1838;--muted:#C9AFCF;--line:#4A2C57}}
+:root[data-theme="dark"]{--ink:#FBEFF4;--bg:#1E0F26;--panel:#2D1838;--muted:#C9AFCF;--line:#4A2C57}
+*,*::before,*::after{box-sizing:inherit}
+html,body{height:100%;margin:0}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{background:var(--bg);color:var(--ink);font-family:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:17px;line-height:1.45}
+h1,h2,h3,.disp{font-family:'Baloo 2','Nunito',system-ui,sans-serif;line-height:1.05;margin:0}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+button:focus-visible,input:focus-visible{outline:3px solid var(--sky);outline-offset:3px}
+.wrap{max-width:980px;margin:0 auto;padding:16px}
+.screen{display:none}.screen.on{display:block}
+
+/* start */
+.hero{display:grid;gap:20px;align-items:center;grid-template-columns:1fr;padding:24px 0}
+@media(min-width:760px){.hero{grid-template-columns:1.1fr .9fr}}
+.hero h1{font-size:clamp(52px,11vw,104px);font-weight:800;letter-spacing:-.02em;color:var(--gut)}
+.hero h1 span{display:block;color:var(--goldDeep)}
+.hero p{max-width:34em;color:var(--muted);font-size:18px}
+.card{background:var(--panel);border-radius:22px;padding:20px;border:2px solid var(--line)}
+label{font-weight:800;display:block;margin:4px 0 6px}
+input[type=text]{width:100%;font:inherit;font-size:20px;padding:12px 14px;border-radius:14px;border:2px solid var(--line);background:var(--bg);color:var(--ink)}
+.seg{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.seg button{padding:10px 16px;border-radius:999px;border:2px solid var(--line);font-weight:800}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.go{width:100%;margin-top:16px;padding:16px;border-radius:16px;background:var(--gut);color:#fff;font-family:'Baloo 2',sans-serif;font-size:26px;font-weight:800;box-shadow:0 6px 0 #8A1F49}
+.go:active{transform:translateY(4px);box-shadow:0 2px 0 #8A1F49}
+.go:disabled{opacity:.5}
+.board h3{font-size:20px;margin-bottom:8px}
+.board ol{margin:0;padding-left:22px}
+.board li{padding:2px 0}
+
+/* game */
+.top{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px}
+.pill{background:var(--panel);border:2px solid var(--line);border-radius:999px;padding:6px 14px;font-weight:800}
+.gold{font-family:'Baloo 2',sans-serif;font-size:30px;font-weight:800;color:var(--goldDeep);display:flex;gap:6px;align-items:center}
+.gold i{font-style:normal}
+.layout{display:grid;gap:14px;grid-template-columns:1fr}
+@media(min-width:820px){.layout{grid-template-columns:1fr 260px}}
+.q{font-family:'Baloo 2',sans-serif;font-size:clamp(22px,4.2vw,32px);font-weight:800;margin:4px 0 16px}
+.opts{display:grid;gap:10px;grid-template-columns:1fr}
+@media(min-width:620px){.opts{grid-template-columns:1fr 1fr}}
+.opt{min-height:84px;border-radius:18px;padding:14px 16px;color:#fff;font-weight:800;font-size:18px;text-align:left;line-height:1.3;transition:transform .08s}
+.opt:nth-child(1){background:#C7316B;box-shadow:0 5px 0 #8A1F49}
+.opt:nth-child(2){background:#3B6FD8;box-shadow:0 5px 0 #26489A}
+.opt:nth-child(3){background:#14907F;box-shadow:0 5px 0 #0B5D52}
+.opt:nth-child(4){background:#D9821A;box-shadow:0 5px 0 #96560C}
+.opt:active{transform:translateY(3px)}
+.opt.dim{opacity:.35}
+.opt.right{outline:5px solid var(--bile);outline-offset:2px;opacity:1}
+.fb{margin-top:14px;padding:14px 16px;border-radius:16px;font-weight:700}
+.fb.bad{background:#FFE1E1;color:#7A1020}
+.fb.good{background:#E3F7D6;color:#2D5A07}
+.next{margin-top:12px;padding:12px 18px;border-radius:14px;background:var(--ink);color:var(--bg);font-weight:800}
+
+/* pouches – the memorable bit */
+.pouches{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin:10px 0}
+.pouch{width:150px;height:170px;position:relative;transition:transform .15s}
+.pouch:hover{transform:translateY(-6px) rotate(-2deg)}
+.pouch svg{width:100%;height:100%}
+.pouch .lbl{position:absolute;inset:auto 0 18px 0;text-align:center;font-family:'Baloo 2',sans-serif;font-weight:800;font-size:20px;color:#fff;pointer-events:none}
+.pouch.open{animation:pop .35s ease}
+@keyframes pop{50%{transform:scale(1.12)}}
+.pouch[disabled]{cursor:default}
+.prize{text-align:center;font-family:'Baloo 2',sans-serif;font-size:30px;font-weight:800;margin:6px 0}
+.pick{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:10px}
+.pick button{padding:10px 14px;border-radius:14px;background:var(--bg);border:2px solid var(--line);font-weight:800}
+
+/* side leaderboard */
+.lb h3{font-size:20px;margin-bottom:8px}
+.row{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:12px}
+.row.me{background:var(--bg);outline:2px solid var(--gold)}
+.av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:17px;flex:none}
+.row b{margin-left:auto;color:var(--goldDeep);font-family:'Baloo 2',sans-serif;font-size:19px}
+.feed{margin-top:10px;font-size:14px;color:var(--muted);min-height:3em}
+
+/* end */
+.end h2{font-size:clamp(40px,8vw,72px);color:var(--gut)}
+.stats{display:flex;gap:12px;flex-wrap:wrap;margin:14px 0}
+.stat{background:var(--panel);border:2px solid var(--line);border-radius:18px;padding:12px 16px;min-width:130px}
+.stat b{display:block;font-family:'Baloo 2',sans-serif;font-size:32px;color:var(--goldDeep)}
+.mis li{margin:4px 0}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;font-weight:800;opacity:0;transition:opacity .25s;pointer-events:none;max-width:92vw;text-align:center}
+.toast.on{opacity:1}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- START -->
+<section id="start" class="screen on">
+  <div class="hero">
+    <div>
+      <h1>Gut Gold<span>Rush</span></h1>
+      <p>Answer digestion questions to open gut pouches. Pouches hide gold, double-ups, and chances to steal from rivals. Most gold when the timer ends wins.</p>
+    </div>
+    <div class="card">
+      <label for="nm">Your name</label>
+      <input id="nm" type="text" maxlength="16" placeholder="e.g. Aisha" autocomplete="off">
+      <label style="margin-top:14px">Game length</label>
+      <div class="seg" id="len">
+        <button data-m="3" aria-pressed="false">3 min</button>
+        <button data-m="5" aria-pressed="true">5 min</button>
+        <button data-m="8" aria-pressed="false">8 min</button>
+      </div>
+      <button class="go" id="play" disabled>Start game</button>
+    </div>
+  </div>
+  <div class="card board">
+    <h3>Best scores on this device</h3>
+    <ol id="best"></ol>
+  </div>
+</section>
+
+<!-- GAME -->
+<section id="game" class="screen">
+  <div class="top">
+    <div class="gold"><i>🪙</i><span id="g">0</span></div>
+    <div class="pill" id="tm">5:00</div>
+    <div class="pill" id="acc">0 / 0 correct</div>
+  </div>
+  <div class="layout">
+    <div class="card" id="stage"></div>
+    <aside class="card lb">
+      <h3>Leaderboard</h3>
+      <div id="rows"></div>
+      <div class="feed" id="feed"></div>
+    </aside>
+  </div>
+</section>
+
+<!-- END -->
+<section id="end" class="screen end"></section>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ===== Question bank: taken from the Digestion Journey simulation (Year 8) ===== */
+const BANK=[
+ {q:'What is digestion?',o:[['Breaking down large, insoluble food molecules into small, soluble molecules',1],['Mixing food with water so it is easier to swallow'],['Removing waste products from the blood',0,'Confuses digestion with excretion'],['Making new food molecules in the body']]},
+ {q:'Which organ is a muscular bag that contains acid?',o:[['Stomach',1],['Liver'],['Rectum'],['Gullet']]},
+ {q:'Where does digestion start?',o:[['Mouth',1],['Stomach',0,'Thinks digestion starts in the stomach'],['Small intestine'],['Gullet']]},
+ {q:'Where is water absorbed from undigested food?',o:[['Large intestine',1],['Small intestine'],['Stomach',0,'Thinks water is absorbed in the stomach'],['Gullet']]},
+ {q:'Which organ makes bile?',o:[['Liver',1],['Gall bladder',0,'Thinks the gall bladder makes bile (it only stores it)'],['Pancreas'],['Stomach']]},
+ {q:'How do villi help the small intestine?',o:[['They increase the surface area for absorption',1],['They make hydrochloric acid'],['They push food along the gut',0,'Confuses villi with peristalsis'],['They store faeces']]},
+ {q:'Why must food be digested?',o:[['Large molecules are too big to be absorbed, so they are broken into small soluble molecules',1],['So that food tastes better'],['To turn food into water'],['So that food can be stored in the stomach for weeks']]},
+ {q:'Which tube carries food from the mouth to the stomach?',o:[['Gullet (oesophagus)',1],['Windpipe (trachea)',0,'Confuses the windpipe with the gullet'],['Small intestine'],['Rectum']]},
+ {q:'Which is the correct order that food passes through?',o:[['Mouth → gullet → stomach → small intestine → large intestine → rectum → anus',1],['Mouth → gullet → stomach → large intestine → small intestine → rectum → anus',0,'Thinks the large intestine comes before the small intestine'],['Mouth → stomach → gullet → small intestine → large intestine → rectum → anus'],['Mouth → gullet → liver → stomach → small intestine → large intestine → anus',0,'Thinks food passes through the liver']]},
+ {q:'Where are digested nutrients absorbed into the blood?',o:[['Small intestine',1],['Large intestine',0,'Thinks nutrients are absorbed in the large intestine'],['Stomach'],['Rectum']]},
+ {q:'What is the job of bile?',o:[['It breaks fats into small droplets',1],['It kills microbes in food',0,'Confuses bile with stomach acid'],['It digests starch'],['It absorbs water']]},
+ {q:'What is peristalsis?',o:[['Waves of muscle contraction that push food along the gut',1],['Chemical digestion of protein'],['Absorption of nutrients through villi',0,'Confuses villi with peristalsis'],['Grinding of food by the teeth']]},
+ {q:'What happens to the sandwich in the mouth?',o:[['Teeth break it into smaller pieces and saliva starts digesting starch',1],['Acid kills the bacteria in the food',0,'Thinks acid is made in the mouth','Acid is found in the stomach, not the mouth.'],['Nutrients are absorbed into the blood',0,'Thinks nutrients are absorbed in the mouth','Absorption happens mainly in the small intestine.'],['Water is removed from the food',0,0,'Water is absorbed in the large intestine.']]},
+ {q:'How does the food move down the gullet?',o:[['Waves of muscle contraction squeeze it along (peristalsis)',1],['Only gravity pulls it down',0,'Thinks food moves through the gut by gravity only','Peristalsis works even when you are upside down – it is muscles, not gravity.'],['Bile pushes it along',0,0,'Bile is added in the small intestine, and it breaks up fats.'],['Villi pull it down',0,'Confuses villi with peristalsis','Villi are in the small intestine and absorb nutrients.']]},
+ {q:'What happens in the stomach?',o:[['Food is churned with acid and juices, and protein digestion begins',1],['Most of the water is absorbed',0,'Thinks water is absorbed in the stomach','Water is absorbed mainly in the large intestine.'],['Bile is made here',0,'Thinks bile is made in the stomach','Bile is made in the liver.'],['Nutrients are absorbed through villi',0,'Thinks villi are found in the stomach','Villi are found in the small intestine.']]},
+ {q:'Which statement about the small intestine is correct?',o:[['Digestion is completed and small molecules are absorbed into the blood through villi',1],['Faeces are stored here',0,0,'Faeces are stored in the rectum.'],['Food is churned with hydrochloric acid',0,0,'That happens in the stomach.'],['Bile is made here',0,'Thinks bile is made in the small intestine','Bile is made in the liver, stored in the gall bladder and released into the small intestine.']]},
+ {q:'What happens in the large intestine?',o:[['Water is absorbed and good bacteria make some vitamins',1],['Most nutrients are absorbed into the blood',0,'Thinks nutrients are absorbed in the large intestine','Most nutrients were already absorbed in the small intestine.'],['Protein digestion begins',0,0,'Protein digestion begins in the stomach.'],['Saliva is added',0,0,'Saliva is added in the mouth.']]},
+ {q:'What is the job of the rectum?',o:[['It stores faeces until they leave the body',1],['It completes digestion',0,0,'Digestion is completed in the small intestine.'],['It absorbs most of the nutrients',0,'Thinks nutrients are absorbed in the rectum','Nutrients are absorbed in the small intestine.'],['It makes enzymes',0,0,'Enzymes come from glands such as the salivary glands and the pancreas.']]},
+ {q:'After the mouth, where does food go next?',o:[['Gullet (oesophagus)',1],['Windpipe (trachea)',0,'Confuses the windpipe with the gullet','The windpipe carries air to the lungs. A flap (the epiglottis) stops food going down it.'],['Stomach',0,0,'A tube connects the mouth to the stomach first.'],['Liver',0,'Thinks food passes through the liver','Food never passes through the liver – it is a helper organ.']]},
+ {q:'After the gullet, where does food go next?',o:[['Stomach',1],['Small intestine',0,0,'Not yet – there is a muscular bag before the small intestine.'],['Liver',0,'Thinks food passes through the liver','Food never passes through the liver – it is a helper organ.'],['Large intestine',0,0,'Much later! Think about where acid is.']]},
+ {q:'After the stomach, where does food go next?',o:[['Small intestine',1],['Large intestine',0,'Thinks the large intestine comes before the small intestine','The small intestine comes first. It is "small" because it is narrow – it is actually the longest part!'],['Pancreas',0,'Thinks food passes through the pancreas','The pancreas only sends enzymes into the small intestine.'],['Rectum',0,0,'Much later! Digestion is not finished yet.']]},
+ {q:'After the small intestine, where does food go next?',o:[['Large intestine',1],['Rectum',0,0,'Nearly – but water still needs to be absorbed first.'],['Gall bladder',0,'Thinks food passes through the gall bladder','Food does not enter the gall bladder – it only stores bile.'],['Stomach',0,0,'Food does not go backwards!']]},
+ {q:'After the large intestine, where does food go next?',o:[['Rectum',1],['Anus',0,0,'Nearly – but faeces are stored somewhere first.'],['Small intestine',0,0,'Food does not go backwards!'],['Pancreas',0,'Thinks food passes through the pancreas','Food never passes through the pancreas.']]},
+ {q:'Which organ MAKES bile?',o:[['Liver',1],['Gall bladder',0,'Thinks the gall bladder makes bile (it only stores it)','The gall bladder only stores bile.'],['Pancreas',0,0,'The pancreas makes enzymes, not bile.'],['Stomach',0,0,'The stomach makes acid and juices, not bile.']]},
+ {q:'Where is bile STORED before it goes into the small intestine?',o:[['Gall bladder',1],['Liver',0,0,'The liver makes bile but does not store it.'],['Pancreas'],['Small intestine']]},
+ {q:'What does the pancreas add to the small intestine?',o:[['Enzymes that digest carbohydrate, protein and fat',1],['Bile',0,'Thinks the pancreas makes bile','Bile comes from the liver (stored in the gall bladder).'],['Hydrochloric acid',0,0,'Acid is made in the stomach.'],['Saliva',0,0,'Saliva is made by salivary glands in the mouth.']]}
+];
+
+/* ===== state ===== */
+const $=id=>document.getElementById(id);
+let mins=5, S;
+const RIVALS=[
+ {n:'Captain Villi',e:'🦠',c:'#14907F'},{n:'Bile Bandit',e:'🟢',c:'#7BAE1E'},
+ {n:'Enzyme Ed',e:'⚗️',c:'#3B6FD8'},{n:'Peri Stalsis',e:'🌀',c:'#D9821A'}
+];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function toast(t){const el=$('toast');el.textContent=t;el.classList.add('on');clearTimeout(toast.k);toast.k=setTimeout(()=>el.classList.remove('on'),2200)}
+function store(k,v){try{if(v===undefined)return JSON.parse(localStorage.getItem(k)||'null');localStorage.setItem(k,JSON.stringify(v))}catch(e){return null}}
+
+/* ===== start screen ===== */
+function showBest(){const b=store('ggr-best')||[];$('best').innerHTML=b.length?b.map(x=>`<li><b>${esc(x.n)}</b> – ${x.g} gold (${x.a}% correct)</li>`).join(''):'<li style="list-style:none;margin-left:-22px;color:var(--muted)">No games yet. Play one to set the first record.</li>'}
+showBest();
+$('nm').addEventListener('input',e=>$('play').disabled=!e.target.value.trim());
+$('len').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;mins=+b.dataset.m;[...$('len').children].forEach(x=>x.setAttribute('aria-pressed',x===b))});
+$('play').onclick=start;
+$('nm').addEventListener('keydown',e=>{if(e.key==='Enter'&&!$('play').disabled)start()});
+
+function start(){
+  S={name:$('nm').value.trim(),g:0,right:0,total:0,deck:shuffle(BANK),i:0,mis:{},missed:{},
+     end:Date.now()+mins*60000,
+     rivals:RIVALS.map(r=>({...r,g:0,skill:.55+Math.random()*.35}))};
+  show('game');tick();S.t=setInterval(tick,1000);S.b=setInterval(botTurn,2600);ask();
+}
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));scrollTo(0,0)}
+
+/* ===== timer, bots, board ===== */
+function tick(){
+  const left=Math.max(0,S.end-Date.now()),m=left/60000|0,s=(left/1000|0)%60;
+  $('tm').textContent=`${m}:${String(s).padStart(2,'0')}`;
+  if(!left)finish();
+}
+function botTurn(){
+  const r=S.rivals[Math.random()*S.rivals.length|0];
+  if(Math.random()>r.skill)return;
+  const roll=Math.random();
+  if(roll<.1&&S.g>20){const amt=Math.round(S.g*.15);S.g-=amt;r.g+=amt;feed(`${r.e} ${r.n} stole ${amt} gold from you!`);toast(`${r.n} stole ${amt} gold!`)}
+  else if(roll<.2){r.g*=2;feed(`${r.e} ${r.n} doubled their gold`)}
+  else{r.g+=[10,20,20,30,40,60][Math.random()*6|0]}
+  r.g=Math.round(r.g);board();
+}
+function feed(t){S.feed=[t,...(S.feed||[])].slice(0,3);$('feed').innerHTML=S.feed.map(esc).join('<br>')}
+function players(){return [{n:S.name,e:'🙂',c:'#C7316B',g:S.g,me:1},...S.rivals].sort((a,b)=>b.g-a.g)}
+function board(){
+  $('g').textContent=S.g;$('acc').textContent=`${S.right} / ${S.total} correct`;
+  $('rows').innerHTML=players().map((p,i)=>`<div class="row ${p.me?'me':''}"><span>${i+1}</span><span class="av" style="background:${p.c}">${p.e}</span><span>${esc(p.n)}</span><b>${p.g}</b></div>`).join('');
+}
+
+/* ===== question ===== */
+function ask(){
+  board();
+  if(S.i>=S.deck.length){S.deck=shuffle(BANK);S.i=0}
+  const Q=S.deck[S.i++],opts=shuffle(Q.o);
+  $('stage').innerHTML=`<div class="q">${esc(Q.q)}</div><div class="opts">${opts.map((o,k)=>`<button class="opt" data-k="${k}">${esc(o[0])}</button>`).join('')}</div><div id="after"></div>`;
+  $('stage').querySelectorAll('.opt').forEach(b=>b.onclick=()=>answer(Q,opts,+b.dataset.k));
+}
+function answer(Q,opts,k){
+  const o=opts[k],btns=$('stage').querySelectorAll('.opt');
+  btns.forEach((b,i)=>{b.disabled=true;if(opts[i][1])b.classList.add('right');else if(i!==k)b.classList.add('dim')});
+  S.total++;
+  if(o[1]){S.right++;board();pouches();return}
+  if(o[2])S.mis[o[2]]=(S.mis[o[2]]||0)+1;
+  S.missed[Q.q]=1;
+  const correct=opts.find(x=>x[1])[0];
+  $('after').innerHTML=`<div class="fb bad">Not quite. ${o[3]?esc(o[3])+' ':''}The answer is: <b>${esc(correct)}</b></div><button class="next" id="nx">Next question</button>`;
+  board();
+  const nx=$('nx');nx.disabled=true;setTimeout(()=>{nx.disabled=false;nx.focus()},1500);nx.onclick=ask;
+}
+
+/* ===== pouches ===== */
+const POUCH=(c)=>`<svg viewBox="0 0 150 170" aria-hidden="true"><path d="M48 30 Q75 8 102 30 L96 44 Q75 36 54 44Z" fill="${c}" opacity=".75"/><path d="M54 44 Q75 36 96 44 C140 60 146 120 120 148 C100 168 50 168 30 148 C4 120 10 60 54 44Z" fill="${c}"/><path d="M40 92 Q75 112 110 92" stroke="#fff" stroke-opacity=".35" stroke-width="6" fill="none" stroke-linecap="round"/><circle cx="58" cy="70" r="8" fill="#fff" opacity=".25"/></svg>`;
+function prize(){
+  const r=Math.random();
+  if(r<.42)return{t:'gold',v:[10,15,20,25,40][Math.random()*5|0]};
+  if(r<.56)return{t:'gold',v:[50,75,100][Math.random()*3|0]};
+  if(r<.66)return{t:'double'};
+  if(r<.78)return{t:'steal'};
+  if(r<.84)return{t:'swap'};
+  if(r<.93)return{t:'lose'};
+  return{t:'nothing'};
+}
+function pouches(){
+  const cols=['#C7316B','#14907F','#D9821A'];
+  $('after').innerHTML=`<div class="fb good">Correct! Pick a pouch.</div><div class="pouches">${cols.map((c,i)=>`<button class="pouch" data-i="${i}" aria-label="Pouch ${i+1}">${POUCH(c)}<span class="lbl">?</span></button>`).join('')}</div><div id="res"></div>`;
+  $('after').querySelectorAll('.pouch').forEach(p=>p.onclick=()=>openPouch(p));
+}
+function openPouch(p){
+  $('after').querySelectorAll('.pouch').forEach(x=>{x.disabled=true;if(x!==p)x.style.opacity=.3});
+  p.classList.add('open');
+  const z=prize(),lbl=p.querySelector('.lbl');
+  const done=t=>{$('res').innerHTML=`<div class="prize">${t}</div><div style="text-align:center"><button class="next" id="nx">Next question</button></div>`;board();$('nx').onclick=ask;$('nx').focus()};
+  if(z.t==='gold'){S.g+=z.v;lbl.textContent='+'+z.v;done(`+${z.v} gold`)}
+  else if(z.t==='double'){S.g=Math.max(S.g*2,S.g+10);lbl.textContent='×2';done('Gold doubled!')}
+  else if(z.t==='lose'){const l=Math.round(S.g*.25);S.g-=l;lbl.textContent='−25%';done(l?`Ouch, lost ${l} gold`:'Lose 25%… but you had nothing to lose')}
+  else if(z.t==='nothing'){lbl.textContent='Empty';done('Empty pouch')}
+  else{
+    lbl.textContent=z.t==='steal'?'Steal':'Swap';
+    $('res').innerHTML=`<div class="prize">${z.t==='steal'?'Steal 20% from…':'Swap gold with…'}</div><div class="pick">${S.rivals.map((r,i)=>`<button data-i="${i}">${r.e} ${esc(r.n)} (${r.g})</button>`).join('')}</div>`;
+    $('res').querySelectorAll('.pick button').forEach(b=>b.onclick=()=>{
+      const r=S.rivals[+b.dataset.i];
+      if(z.t==='steal'){const a=Math.round(r.g*.2);r.g-=a;S.g+=a;done(`You stole ${a} gold from ${esc(r.n)}`)}
+      else{[S.g,r.g]=[r.g,S.g];done(`Swapped with ${esc(r.n)}`)}
+    });
+  }
+}
+
+/* ===== end ===== */
+function finish(){
+  clearInterval(S.t);clearInterval(S.b);
+  const pl=players(),rank=pl.findIndex(p=>p.me)+1,acc=S.total?Math.round(S.right/S.total*100):0;
+  const best=(store('ggr-best')||[]).concat({n:S.name,g:S.g,a:acc}).sort((a,b)=>b.g-a.g).slice(0,10);store('ggr-best',best);
+  const mis=Object.entries(S.mis).sort((a,b)=>b[1]-a[1]);
+  const title=rank===1?'You win!':rank<=3?`${rank}${rank===2?'nd':'rd'} place!`:`${rank}th place`;
+  $('end').innerHTML=`<h2>${title}</h2>
+  <div class="stats"><div class="stat"><b>${S.g}</b>gold</div><div class="stat"><b>${acc}%</b>correct</div><div class="stat"><b>${S.right}/${S.total}</b>questions</div></div>
+  <div class="card board" style="margin-bottom:14px"><h3>Final leaderboard</h3><ol>${pl.map(p=>`<li>${p.e} <b>${esc(p.n)}</b> – ${p.g}</li>`).join('')}</ol></div>
+  ${mis.length?`<div class="card" style="margin-bottom:14px"><h3 style="font-size:20px;margin-bottom:6px">Ideas to fix</h3><ul class="mis">${mis.map(([m,c])=>`<li>${esc(m)}${c>1?` (×${c})`:''}</li>`).join('')}</ul></div>`:''}
+  ${Object.keys(S.missed).length?`<div class="card" style="margin-bottom:14px"><h3 style="font-size:20px;margin-bottom:6px">Questions to revise</h3><ul class="mis">${Object.keys(S.missed).map(q=>`<li>${esc(q)}</li>`).join('')}</ul></div>`:''}
+  <button class="go" id="again" style="max-width:360px">Play again</button>`;
+  show('end');$('again').onclick=()=>{showBest();show('start')};
+}
+</script>
+</body>
+</html>
